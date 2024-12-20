@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify 人気曲</title>
+    <style>
+        .track {
+            margin-bottom: 20px;
+        }
+        .track img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spotify 人気曲</h1>
+    <div id="track-list"></div>
+    
+    <script>
+        async function getSpotifyAccessToken() {
+    const clientId = 'a48b74b3e4424cf28ff585aed090ca30';  // Spotify Developer Dashboardで取得
+    const clientSecret = 'b3879ba5282d4bc4960ea7c16031044e';  // Spotify Developer Dashboardで取得
+
+    const tokenUrl = 'https://accounts.spotify.com/api/token';
+    const credentials = btoa(`${clientId}:${clientSecret}`);
+    const headers = {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+    const body = new URLSearchParams();
+    body.append('grant_type', 'client_credentials');
+
+    const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: headers,
+        body: body
+    });
+
+    const data = await response.json();
+    return data.access_token;
+}
+async function getTopTracks() {
+    const accessToken = await getSpotifyAccessToken();
+    const url = 'https://api.spotify.com/v1/browse/toplists';  // 人気の楽曲を取得するURL
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }
+    });
+
+    const data = await response.json();
+    const tracks = data.albums.items;  // 人気アルバム（曲）リスト
+
+    displayTopTracks(tracks);
+}
+
+function displayTopTracks(tracks) {
+    const container = document.getElementById('track-list');
+    container.innerHTML = '';  // コンテナを初期化
+
+    tracks.forEach(track => {
+        const trackElement = document.createElement('div');
+        trackElement.classList.add('track');
+        trackElement.innerHTML = `
+            <h3>${track.name}</h3>
+            <p>Artist: ${track.artists.map(artist => artist.name).join(', ')}</p>
+            <img src="${track.images[0].url}" alt="${track.name}" width="200">
+        `;
+        container.appendChild(trackElement);
+    });
+}
+
+getTopTracks();  // 人気曲の情報を取得して表示
+
+        // 上記のJavaScriptコードをここに追加
+    </script>
+</body>
+</html>
